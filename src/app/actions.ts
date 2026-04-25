@@ -65,3 +65,12 @@ export async function deleteTransaction(id: string) {
   })
   revalidatePath('/')
 }
+
+export async function deleteMultipleTransactions(ids: string[]) {
+  await prisma.transaction.deleteMany({
+    where: {
+      id: { in: ids },
+    },
+  })
+  revalidatePath('/')
+}

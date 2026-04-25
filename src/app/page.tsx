@@ -1,22 +1,15 @@
 import prisma from '@/lib/prisma'
 import { AddTransactionDialog } from '@/components/add-transaction-dialog'
-import { TransactionActions } from '@/components/transaction-actions'
 import { DateFilter } from '@/components/date-filter'
+import { PdfUpload } from '@/components/pdf-upload'
+import { TransactionTable } from '@/components/transaction-table'
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { ArrowDownCircle, ArrowUpCircle, Wallet, Repeat } from 'lucide-react'
+import { ArrowDownCircle, ArrowUpCircle, Wallet } from 'lucide-react'
 
 export default async function DashboardPage({
   searchParams,
@@ -78,6 +71,8 @@ export default async function DashboardPage({
         <div className="flex items-center gap-2">
           <DateFilter />
           <div className="flex gap-2 ml-4">
+            <PdfUpload />
+            <div className="h-8 w-px bg-border mx-2" />
             <AddTransactionDialog defaultType="INCOME" />
             <AddTransactionDialog defaultType="EXPENSE" />
           </div>
@@ -117,62 +112,11 @@ export default async function DashboardPage({
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="capitalize">
-            Transações de {startOfMonth.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-                <TableHead className="w-[80px] text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
-                    Nenhuma transação encontrada para este período.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                transactions.map((t: any) => (
-                  <TableRow key={t.id}>
-                    <TableCell>
-                      {t.category === 'Assinaturas' ? (
-                        <div className="flex items-center gap-1 text-blue-600">
-                          <Repeat className="h-3 w-3" />
-                          <span>Fixo</span>
-                        </div>
-                      ) : (
-                        new Date(t.date).toLocaleDateString('pt-BR')
-                      )}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {t.description}
-                      {t.installments > 1 && (
-                        <span className="ml-2 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                          {t.installments}x
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>{t.category}</TableCell>
-                    <TableCell className={`text-right font-bold ${t.type === 'INCOME' ? 'text-green-600' : 'text-red-600'}`}>
-                      {t.type === 'INCOME' ? '+' : '-'} R$ {t.amount.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <TransactionActions transaction={t} />
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+        <CardContent className="pt-6">
+          <TransactionTable 
+            transactions={transactions} 
+            monthName={startOfMonth.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })} 
+          />
         </CardContent>
       </Card>
     </main>

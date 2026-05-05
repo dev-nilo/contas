@@ -13,13 +13,15 @@ enum TransactionType {
 }
 
 model Transaction {
-  id            String          @id @default(uuid())
-  description   String
-  amount        Float
-  type          TransactionType
-  category    String
-  installments  Int?            @default(1)
-  date          DateTime        @default(now())
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id                 String          @id @default(uuid())
+  description        String
+  responsible        String          @default("Não informado")
+  amount             Float
+  type               TransactionType
+  category           String
+  installments       Int?            @default(1)
+  installmentsPaid   Int             @default(0)
+  date               DateTime        @default(now())
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
 }

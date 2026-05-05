@@ -19,7 +19,7 @@ export default async function DashboardPage({
     year?: string
     description?: string
     category?: string
-    orderBy?: 'date' | 'description' | 'category' | 'amount'
+    orderBy?: 'date' | 'description' | 'category' | 'responsible' | 'amount'
     order?: 'asc' | 'desc'
   }>
 }) {
@@ -33,8 +33,8 @@ export default async function DashboardPage({
   const startOfMonth = new Date(selectedYear, selectedMonth, 1)
   const endOfMonth = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59)
 
-  const sortField = ['date', 'description', 'category', 'amount'].includes(orderBy || '')
-    ? (orderBy as 'date' | 'description' | 'category' | 'amount')
+  const sortField = ['date', 'description', 'category', 'responsible', 'amount'].includes(orderBy || '')
+    ? (orderBy as 'date' | 'description' | 'category' | 'responsible' | 'amount')
     : 'date'
   const sortOrder = order === 'asc' ? 'asc' : 'desc'
 
@@ -69,18 +69,18 @@ export default async function DashboardPage({
   })
 
   const totals = transactions.reduce(
-    (acc: { income: number; expenses: number }, transaction: any) => {
+    (acc: { Receita: number; Despesas: number }, transaction: any) => {
       if (transaction.type === 'INCOME') {
-        acc.income += transaction.amount
+        acc.Receita += transaction.amount
       } else {
-        acc.expenses += transaction.amount
+        acc.Despesas += transaction.amount
       }
       return acc
     },
-    { income: 0, expenses: 0 }
+    { Receita: 0, Despesas: 0 }
   )
 
-  const balance = totals.income - totals.expenses
+  const balance = totals.Receita - totals.Despesas
 
   return (
     <main className="container mx-auto py-10 px-4 space-y-8">
@@ -94,8 +94,8 @@ export default async function DashboardPage({
           <div className="flex gap-2 ml-4">
             <PdfUpload />
             <div className="h-8 w-px bg-border mx-2" />
-            <AddTransactionDialog defaultType="INCOME" />
-            <AddTransactionDialog defaultType="EXPENSE" />
+            <AddTransactionDialog defaultType="Receita" />
+            <AddTransactionDialog defaultType="Despesa" />
           </div>
         </div>
       </div>
@@ -118,7 +118,7 @@ export default async function DashboardPage({
             <ArrowUpCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">R$ {totals.income.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-green-600">R$ {totals.Receita.toFixed(2)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -127,7 +127,7 @@ export default async function DashboardPage({
             <ArrowDownCircle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">R$ {totals.expenses.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-red-600">R$ {totals.Despesas.toFixed(2)}</div>
           </CardContent>
         </Card>
       </div>

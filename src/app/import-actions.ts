@@ -59,15 +59,15 @@ export async function parseStatementPdf(formData: FormData) {
       let amount = parseFloat(amountStr)
       
       // Logic for type: 
-      // Default to EXPENSE as per user request. 
-      // Treat as INCOME only if it's explicitly positive or has keywords.
+      // Default to Despesa as per user request. 
+      // Treat as Receita only if it's explicitly positive or has keywords.
       let type: 'INCOME' | 'EXPENSE' = 'EXPENSE'
       
-      const incomeKeywords = ['SALARIO', 'PIX RECEBIDO', 'RENDIMENTO', 'TRANSFERENCIA RECEBIDA', 'DEPOSITO', 'CREDITO']
+      const ReceitaKeywords = ['SALARIO', 'PIX RECEBIDO', 'RENDIMENTO', 'TRANSFERENCIA RECEBIDA', 'DEPOSITO', 'CREDITO']
       const isExplicitlyNegative = amountMatch[0].includes('-')
-      const hasIncomeKeyword = incomeKeywords.some(kw => line.toUpperCase().includes(kw))
+      const hasReceitaKeyword = ReceitaKeywords.some(kw => line.toUpperCase().includes(kw))
 
-      if (hasIncomeKeyword && !isExplicitlyNegative) {
+      if (hasReceitaKeyword && !isExplicitlyNegative) {
         type = 'INCOME'
       }
 

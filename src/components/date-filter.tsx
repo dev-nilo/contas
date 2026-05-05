@@ -47,7 +47,9 @@ export function DateFilter() {
     <div className="flex gap-2">
       <Select
         value={currentMonth || undefined}
-        onValueChange={(v) => updateFilter("month", v)}
+        onValueChange={(v) => {
+          if (v != null && v !== "") updateFilter("month", v);
+        }}
       >
         <SelectTrigger className="w-[140px]">
           <SelectValue placeholder="Mês" />
@@ -63,7 +65,9 @@ export function DateFilter() {
 
       <Select
         value={currentYear || undefined}
-        onValueChange={(v) => updateFilter("year", v)}
+        onValueChange={(v) => {
+          if (v != null && v !== "") updateFilter("year", v);
+        }}
       >
         <SelectTrigger className="w-[100px]">
           <SelectValue placeholder="Ano" />

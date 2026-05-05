@@ -14,9 +14,16 @@ import { ArrowDownCircle, ArrowUpCircle, Wallet } from 'lucide-react'
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string; year?: string }>
+  searchParams: Promise<{
+    month?: string
+    year?: string
+    description?: string
+    category?: string
+    orderBy?: 'date' | 'description' | 'category' | 'amount'
+    order?: 'asc' | 'desc'
+  }>
 }) {
-  const { month, year } = await searchParams
+  const { month, year, description, category, orderBy, order } = await searchParams
   
   const selectedMonthValue = month ? parseInt(month) : new Date().getMonth() + 1
   const selectedMonth = selectedMonthValue - 1 // Back to 0-indexed for JS Date
@@ -26,25 +33,39 @@ export default async function DashboardPage({
   const startOfMonth = new Date(selectedYear, selectedMonth, 1)
   const endOfMonth = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59)
 
+  const sortField = ['date', 'description', 'category', 'amount'].includes(orderBy || '')
+    ? (orderBy as 'date' | 'description' | 'category' | 'amount')
+    : 'date'
+  const sortOrder = order === 'asc' ? 'asc' : 'desc'
+
   // Fetch all transactions to filter them in memory for "Assinaturas" logic
   const allTransactions = await prisma.transaction.findMany({
-    orderBy: { date: 'desc' },
+    orderBy: { [sortField]: sortOrder },
   })
 
   const transactions = allTransactions.filter((t: any) => {
     const tDate = new Date(t.date)
+
+    const matchesDescription = !description || t.description.toLowerCase().includes(description.toLowerCase())
+    const matchesCategory = !category || t.category === category
     
     // Rule for Fixed Subscriptions: 
     // If it's a subscription, show it if the start date is before or within the selected month
     if (t.category === 'Assinaturas') {
-      return tDate <= endOfMonth
+      return tDate <= endOfMonth && matchesDescription && matchesCategory
     }
 
     // Normal Rule: Only show if it's within the selected month and year
-    return (
+    const isInSelectedMonth = (
       tDate.getMonth() === selectedMonth && 
       tDate.getFullYear() === selectedYear
     )
+
+    if (!isInSelectedMonth) return false
+    if (!matchesDescription) return false
+    if (!matchesCategory) return false
+
+    return true
   })
 
   const totals = transactions.reduce(

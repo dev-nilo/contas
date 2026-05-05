@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Table,
@@ -10,9 +11,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { TransactionActions } from '@/components/transaction-actions'
 import { Repeat, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { deleteMultipleTransactions } from '@/app/actions'
 
 interface TransactionTableProps {
@@ -22,6 +31,26 @@ interface TransactionTableProps {
 
 export function TransactionTable({ transactions, monthName }: TransactionTableProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const currentDescription = searchParams.get('description') || ''
+  const currentCategory = searchParams.get('category') || 'all'
+  const currentOrderBy = searchParams.get('orderBy') || 'date'
+  const currentOrder = searchParams.get('order') || 'desc'
+  const categories = Array.from(new Set(transactions.map((t) => t.category))).sort()
+
+  const updateFilter = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+
+    if (value === 'all' || value.trim() === '') {
+      params.delete(key)
+    } else {
+      params.set(key, value)
+    }
+
+    router.push(`/?${params.toString()}`)
+  }
 
   const toggleSelectAll = () => {
     if (selectedIds.length === transactions.length) {
@@ -46,19 +75,73 @@ export function TransactionTable({ transactions, monthName }: TransactionTablePr
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-semibold capitalize">Transações de {monthName}</h2>
-        {selectedIds.length > 0 && (
-          <Button 
-            variant="destructive" 
-            size="sm" 
-            className="gap-2 animate-in fade-in slide-in-from-top-1"
-            onClick={handleBulkDelete}
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            value={currentDescription}
+            onChange={(e) => updateFilter('description', e.target.value)}
+            placeholder="Filtrar descrição"
+            className="w-[190px]"
+          />
+
+          <Select
+            value={currentCategory}
+            onValueChange={(v) => updateFilter('category', v)}
           >
-            <Trash2 className="h-4 w-4" />
-            Excluir {selectedIds.length} selecionados
-          </Button>
-        )}
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas categorias</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={currentOrderBy}
+            onValueChange={(v) => updateFilter('orderBy', v)}
+          >
+            <SelectTrigger className="w-[130px]">
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="date">Data</SelectItem>
+              <SelectItem value="description">Descrição</SelectItem>
+              <SelectItem value="category">Categoria</SelectItem>
+              <SelectItem value="amount">Valor</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={currentOrder}
+            onValueChange={(v) => updateFilter('order', v)}
+          >
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Ordem" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="desc">Decrescente</SelectItem>
+              <SelectItem value="asc">Crescente</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {selectedIds.length > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              className="gap-2 animate-in fade-in slide-in-from-top-1"
+              onClick={handleBulkDelete}
+            >
+              <Trash2 className="h-4 w-4" />
+              Excluir {selectedIds.length} selecionados
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="border rounded-md">

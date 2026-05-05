@@ -46,15 +46,20 @@ export function PdfUpload() {
         formData.append('description', t.description)
         formData.append('amount', t.amount.toString())
         formData.append('type', t.type)
+        formData.append('responsible', 'Importado')
         formData.append('category', 'Outros')
         formData.append('date', t.date)
+        formData.append('installments', '1')
+        formData.append('installmentsPaid', '0')
         await addTransaction(formData)
       }
       setOpen(false)
       setTransactions([])
     } catch (error) {
       console.error(error)
-      alert('Erro ao salvar transações.')
+      alert(
+        error instanceof Error ? error.message : 'Erro ao salvar transações.'
+      )
     } finally {
       setLoading(false)
     }

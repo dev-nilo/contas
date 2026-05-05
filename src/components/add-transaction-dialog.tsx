@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,16 +22,25 @@ import {
 import { addTransaction } from "@/app/actions";
 
 export function AddTransactionDialog({
-  defaultType = "EXPENSE",
+  defaultType = "Despesa",
 }: {
-  defaultType?: "INCOME" | "EXPENSE";
+  defaultType?: "Receita" | "Despesa";
 }) {
   const [open, setOpen] = useState(false);
-  const [type, setType] = useState<"INCOME" | "EXPENSE">(defaultType);
+  const [parcelTotal, setParcelTotal] = useState("1");
+
+  useEffect(() => {
+    if (open) setParcelTotal("1");
+  }, [open]);
 
   async function handleSubmit(formData: FormData) {
-    await addTransaction(formData);
-    setOpen(false);
+    try {
+      await addTransaction(formData);
+      setOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "Não foi possível salvar.");
+    }
   }
 
   return (
@@ -39,27 +48,40 @@ export function AddTransactionDialog({
       <DialogTrigger
         render={
           <Button
-            className={`gap-2 ${defaultType === "INCOME" ? "bg-green-300 hover:bg-green-500 text-white border-0" : "bg-red-400 hover:bg-red-500 text-white border-0"}`}
+            className={`gap-2 ${defaultType === "Receita" ? "bg-green-300 hover:bg-green-500 text-white border-0" : "bg-red-400 hover:bg-red-500 text-white border-0"}`}
           >
             <Plus className="h-4 w-4" />
-            {defaultType === "INCOME" ? "Entrada" : "Saída"}
+            {defaultType === "Receita" ? "Entrada" : "Saída"}
           </Button>
         }
       />
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            Nova {defaultType === "INCOME" ? "Entrada" : "Saída"}
+            Nova {defaultType === "Receita" ? "Entrada" : "Saída"}
           </DialogTitle>
         </DialogHeader>
         <form action={handleSubmit} className="grid gap-4 py-4">
-          <input type="hidden" name="type" value={defaultType} />
+          <input
+            type="hidden"
+            name="type"
+            value={defaultType === "Receita" ? "INCOME" : "EXPENSE"}
+          />
           <div className="grid gap-2">
             <Label htmlFor="description">Descrição</Label>
             <Input
               id="description"
               name="description"
               placeholder="Ex: Mercado, Salário..."
+              required
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="responsible">Responsável</Label>
+            <Input
+              id="responsible"
+              name="responsible"
+              placeholder="Ex: Nilo"
               required
             />
           </div>
@@ -85,16 +107,33 @@ export function AddTransactionDialog({
             />
           </div>
 
-          {defaultType === "EXPENSE" && (
+          {defaultType === "Despesa" && (
             <div className="grid gap-2">
-              <Label htmlFor="installments">Parcelas</Label>
+              <Label htmlFor="installments">Nº de parcelas</Label>
               <Input
                 id="installments"
                 name="installments"
                 type="number"
-                min="1"
-                defaultValue="1"
+                min={1}
+                value={parcelTotal}
+                onChange={(e) => setParcelTotal(e.target.value)}
+                required
               />
+              {Math.max(1, parseInt(parcelTotal, 10) || 1) > 1 ? (
+                <div className="grid gap-2">
+                  <Label htmlFor="installmentsPaid">Parcelas já pagas</Label>
+                  <Input
+                    id="installmentsPaid"
+                    name="installmentsPaid"
+                    type="number"
+                    min={0}
+                    max={Math.max(1, parseInt(parcelTotal, 10) || 1)}
+                    defaultValue="0"
+                  />
+                </div>
+              ) : (
+                <input type="hidden" name="installmentsPaid" value="0" />
+              )}
             </div>
           )}
 
@@ -105,7 +144,7 @@ export function AddTransactionDialog({
                 <SelectValue placeholder="Selecione a categoria" />
               </SelectTrigger>
               <SelectContent>
-                {defaultType === "INCOME" ? (
+                {defaultType === "Receita" ? (
                   <>
                     <SelectItem value="Salário">Salário</SelectItem>
                     <SelectItem value="Investimentos">Investimentos</SelectItem>
